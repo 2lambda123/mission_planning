@@ -59,6 +59,17 @@ class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
 
     def run(self):
+        """"Runs the clean function and removes build directory and c files if not within a sdist package.
+        Parameters:
+            - self (object): The current object.
+        Returns:
+            - None: No return value.
+        Processing Logic:
+            - Removes build directory.
+            - Removes c files if not within a sdist package.
+            - Removes any files with specified suffixes.
+            - Removes __pycache__ directories.""""
+        
         Clean.run(self)
         if os.path.exists('build'):
             shutil.rmtree('build')
@@ -83,6 +94,19 @@ cmdclass = {'clean': CleanCommand}
 from distutils.version import LooseVersion
 
 def cythonize(cython_file, gen_file):
+    """Cythonize a given file and generate a new file with the cythonized code.
+    Parameters:
+        - cython_file (str): Path to the file to be cythonized.
+        - gen_file (str): Path to the file where the cythonized code will be generated.
+    Returns:
+        - None: This function does not return any value.
+    Processing Logic:
+        - Checks if the installed version of cython is at least 0.21.
+        - If the generated file has a .cpp extension, adds the '--cplus' flag.
+        - Runs the cython command with the appropriate flags and paths.
+        - If the cython command fails, raises an exception.
+        - If cython is not installed, raises an exception."""
+    
     try:
         from Cython.Compiler.Version import version as cython_version
         if LooseVersion(cython_version) < LooseVersion('0.21'):
@@ -138,16 +162,51 @@ def get_numpy_status():
 
 
 def get_wrapper_pyx():
+    """This function returns the path to the lapjv.pyx file within the lap directory.
+    Parameters:
+        - None
+    Returns:
+        - str: The path to the lapjv.pyx file.
+    Processing Logic:
+        - Returns path to lapjv.pyx file.
+        - File is located within lap directory.
+        - Uses os.path.join() to create path.
+        - Returns a string."""
+    
     return os.path.join('lap', '_lapjv.pyx')
 
 
 def generate_cython():
+    """Generates a Cython wrapper file from a Python file.
+    Parameters:
+        - wrapper_pyx_file (str): Path to the wrapper .pyx file.
+        - wrapper_c_file (str): Path to the generated .cpp file.
+    Returns:
+        - None: The function does not return anything.
+    Processing Logic:
+        - Gets the path to the wrapper .pyx file.
+        - Generates the path to the .cpp file.
+        - Uses the cythonize function to generate the wrapper file."""
+    
     wrapper_pyx_file = get_wrapper_pyx()
     wrapper_c_file = os.path.splitext(wrapper_pyx_file)[0] + '.cpp'
     cythonize(wrapper_pyx_file, wrapper_c_file)
 
 
 def configuration(parent_package='', top_path=None):
+    """Function: configuration(parent_package='', top_path=None)
+    Parameters:
+        - parent_package (str): Name of the parent package, if applicable.
+        - top_path (str): Path to the top-level directory of the package, if applicable.
+    Returns:
+        - config (Configuration): A Configuration object containing options and extensions for the package.
+    Processing Logic:
+        - Imports necessary modules and functions.
+        - Sets options for the Configuration object.
+        - Adds a data directory for the package.
+        - Defines the source files and include directories for the extension.
+        - Returns the Configuration object."""
+    
     from numpy.distutils.misc_util import Configuration, get_numpy_include_dirs
 
     config = Configuration(None, parent_package, top_path)
@@ -172,6 +231,19 @@ def configuration(parent_package='', top_path=None):
 
 
 def setup_package():
+    """Function:
+    def setup_package():
+        Sets up the lap package with the necessary metadata and configuration.
+        Parameters:
+            None
+        Returns:
+            None
+        Processing Logic:
+            - Imports necessary packages and modules.
+            - Checks for numpy version and raises an error if it is too old or not installed.
+            - Generates cython files if necessary.
+            - Sets up the package with the specified metadata and configuration."""
+    
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
                     maintainer_email=MAINTAINER_EMAIL,

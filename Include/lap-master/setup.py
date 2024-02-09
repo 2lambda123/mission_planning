@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import traceback
+from security import safe_command
 
 if sys.version_info[0] < 3:
     import __builtin__ as builtins
@@ -98,14 +99,14 @@ def cythonize(cython_file, gen_file):
 
     try:
         try:
-            rc = subprocess.call(['cython'] +
+            rc = safe_command.run(subprocess.call, ['cython'] +
                                  flags + ["-o", gen_file, cython_file])
             if rc != 0:
                 raise Exception('Cythonizing %s failed' % cython_file)
         except OSError:
             # There are ways of installing Cython that don't result in a cython
             # executable on the path, see scipy issue gh-2397.
-            rc = subprocess.call([sys.executable, '-c',
+            rc = safe_command.run(subprocess.call, [sys.executable, '-c',
                                   'import sys; from Cython.Compiler.Main '
                                   'import setuptools_main as main;'
                                   ' sys.exit(main())'] + flags +
